@@ -3,7 +3,7 @@ import pandas as pd
 csv_file='C:\Users\oswin.frans\Desktop\Python\Walmart\Walmart_Train.csv'
 sample=pd.read_csv(csv_file, index_col=1,sep=';', low_memory=False)
 z = df['TripType']
-z=z.groupby(by=q.index, sort=False).first()
+z=z.groupby(by=z.index, sort=False).first()
 
 #sample=df.iloc[0:50,]
 #z=q.iloc[0:25]
