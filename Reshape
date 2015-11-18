@@ -1,0 +1,32 @@
+import pandas as pd
+
+csv_file='C:\Users\oswin.frans\Desktop\Python\Walmart\Walmart_Train.csv'
+sample=pd.read_csv(csv_file, index_col=1,sep=';', low_memory=False)
+z = df['TripType']
+z=z.groupby(by=q.index, sort=False).first()
+
+#sample=df.iloc[0:50,]
+#z=q.iloc[0:25]
+
+seen=[]
+count=1
+totalcount=1
+start=0
+for t in range(0, len(sample.index)):
+	toappend=pd.DataFrame(sample.iloc[t, 1:6]).transpose()
+	if start==0:
+		z=pd.concat([z, toappend], axis=1, join='outer')
+		start=start+1
+	elif sample.index[t] not in seen:
+		z=z.fillna(toappend)
+		count=1
+		seen.append(sample.index[t])
+	elif totalcount <= count:
+		z=z.join(toappend, how="outer", rsuffix=str(count))	
+		totalcount=totalcount+1
+		count=count+1
+	else:
+    v=count
+    ll={"Weekday"+str(v):toappend.Weekday,"Upc"+str(v):toappend.Upc, 'ScanCount'+str(v): toappend.ScanCount, 'DepartmentDescription'+str(v): toappend.DepartmentDescription, 'FinelineNumber'+str(v): toappend.FinelineNumber}
+    z=z.fillna(value=ll)
+    count=count+1
