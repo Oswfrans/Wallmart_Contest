@@ -32,4 +32,8 @@ for t in range(0, len(sample.index)):
          z=z.fillna(value=ll)
          count=count+1
 
+for i in (z.columns):
+    if 'Weekday' in i and i != "Weekday":
+        z=z.drop(i, axis=1)
+
 z.to_csv(path_or_buf="C:\Users\oswin.frans\Desktop\Python\Walmart\WM_Condensed2.csv")
