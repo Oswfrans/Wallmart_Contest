@@ -11,8 +11,8 @@ from pandas import *
 from sklearn import preprocessing
 from sklearn.feature_extraction import DictVectorizer
 
-csv_file='C:\Users\oswin.frans\Desktop\Python\Walmart\WM_Condensed.csv'
-path='C:\Users\oswin.frans\Desktop\Python\Walmart\WM_FE.csv'
+csv_file='C:\Users\oswin.frans\Desktop\Python\Walmart\WM_Condensed2.csv'
+path='C:\Users\oswin.frans\Desktop\Python\Walmart\WM_FE2.csv'
 df=pd.read_csv(csv_file, index_col=0,sep=',', low_memory=False)
 
 le = preprocessing.LabelEncoder()
@@ -82,9 +82,14 @@ df=df.fillna(-1)
 #one-hot encode weekday
 #df = encode_onehot(df, cols=['Weekday'])
 
+df=encode_onehot(df, cols=['Weekday'])
+
+#combine cat. DepartmentDescription and FinelineNumber
+df["DepFN"]= df["DepartmentDescription"].map(str) + df["FinelineNumber"].map(str)
+
 start=0
 for i in df.columns:
-    if 'Weekday' in i:
+    if 'DepFN' in i:
         if start==0:
             zf=encode_onehot(df, cols=[i])
             start=1
@@ -97,13 +102,8 @@ del df
 #df=to_categorial(df, cols=["DepartmentDescription"])
 #df=to_categorial(df)
 
-
-#combine cat. DepartmentDescription and FinelineNumber
-zf["DepFN"]= zf["DepartmentDescription"].map(str) + zf["FinelineNumber"].map(str)
-
 #one-hot encode DepartmentDescription
 #df=encode_onehot(df, cols=["DepartmentDescription"])
-
 
 start=0
 for k in zf.columns:
