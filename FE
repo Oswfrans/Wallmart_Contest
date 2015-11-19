@@ -1,0 +1,131 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Nov 19 11:26:23 2015
+
+@author: oswin.frans
+"""
+
+import pandas as pd
+import numpy as np
+from pandas import *
+from sklearn import preprocessing
+from sklearn.feature_extraction import DictVectorizer
+
+csv_file='C:\Users\oswin.frans\Desktop\Python\Walmart\WM_Condensed.csv'
+path='C:\Users\oswin.frans\Desktop\Python\Walmart\WM_FE.csv'
+df=pd.read_csv(csv_file, index_col=0,sep=',', low_memory=False)
+
+le = preprocessing.LabelEncoder()
+#le.fit(X_train)
+#X_train = le.transform(X_train)
+#X_test = le.transform(X_test)
+binarizer = preprocessing.Binarizer()
+
+#########################################################################################################
+# pre-processing: convert categorial to numeric
+def to_categorial(df):
+    """ Convert DataFrame non numeric columns to categorial indexes """
+    for col in df:
+        nans = df[col].isnull().sum()
+        
+        if not np.isreal(df[col][0]):
+            #print(df[col].describe())
+            #df[col] = pd.Categorical.from_array(df[col]).codes  
+
+            if nans > 0:
+                df[col] = df[col].fillna('Void')
+                #df[col] = df[col].convert_objects(convert_numeric=False)
+                #print(df[col].describe())
+                #print("Str NaN: " + str(nans) + ", " + str(col))
+            
+            df[col] = df[col].astype(str)    
+            le.fit(df[col])
+            df[col] = le.transform(df[col])
+        else:
+            if nans > 0:
+                df[col] = df[col].fillna(0)
+                #df[col] = df[col].convert_objects(convert_numeric=False)
+                #print(df[col].describe())
+                #print("Numeric NaN: " + str(nans) + ", " + str(col))
+    
+    return df    
+    
+def encode_onehot(df, cols):
+    """
+    One-hot encoding is applied to columns specified in a pandas DataFrame.
+    
+    Modified from: https://gist.github.com/kljensen/5452382
+    
+    Details:
+    
+    http://en.wikipedia.org/wiki/One-hot
+    http://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.OneHotEncoder.html
+    
+    @param df pandas DataFrame
+    @param cols a list of columns to encode
+    @return a DataFrame with one-hot encoding
+    """
+    vec = DictVectorizer()
+    
+    vec_data = pd.DataFrame(vec.fit_transform(df[cols].to_dict(outtype='records')).toarray())
+    vec_data.columns = vec.get_feature_names()
+    vec_data.index = df.index
+    
+    df = df.drop(cols, axis=1)
+    df = df.join(vec_data)
+    return df
+
+#drop or fill empty values?
+#fill with -1
+df=df.fillna(-1)
+
+#one-hot encode weekday
+#df = encode_onehot(df, cols=['Weekday'])
+
+start=0
+for i in df.columns:
+    if 'Weekday' in i:
+        if start==0:
+            zf=encode_onehot(df, cols=[i])
+            start=1
+        else:
+            zf=encode_onehot(zf, cols=[i])
+
+del df
+
+#Cat. Department
+#df=to_categorial(df, cols=["DepartmentDescription"])
+#df=to_categorial(df)
+
+
+#combine cat. DepartmentDescription and FinelineNumber
+zf["DepFN"]= zf["DepartmentDescription"].map(str) + zf["FinelineNumber"].map(str)
+
+#one-hot encode DepartmentDescription
+#df=encode_onehot(df, cols=["DepartmentDescription"])
+
+
+start=0
+for k in zf.columns:
+    if 'DepartmentDescription' in k:
+        if start==0:
+            lf=encode_onehot(zf, cols=[k])
+            start=1
+        else:
+            lf=encode_onehot(lf, cols=[k])
+
+del zf
+
+lf.to_csv(path_or_buf=path)
+
+#df=encode_onehot(df, cols=["DepFN"])
+
+#create total number of purchases
+#df["NrDifItems"]=dataframe[groupby('VisitNumber').Upc.nunique()]
+
+#need to groupby another dataframe with only index and 1 column of data
+#df["NrDifItems"]=df.groupby('VisitNumber').agg['count']
+
+#create similarity ratio
+#need to check the output of this
+#df["SimilarRatio"]= df.groupby(['VisitNumber','DepartmentDescription']).size()/df['NrDifItems']
