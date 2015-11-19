@@ -1,5 +1,44 @@
 
+#Test_pass='Work4WalmarT'
 
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Nov 19 16:48:51 2015
 
+@author: oswin.frans
+"""
+import pandas as pd
+import numpy as np
+import xgboost as xgb
+from sklearn import preprocessing
+from sklearn.cross_validation import train_test_split
 
-Test_pass='Work4WalmarT'
+seed = 260681
+
+train = pd.read_csv('../input/train.csv')
+test = pd.read_csv('../input/test.csv')
+
+#triptypes
+y = train.QuoteConversion_Flag.values
+
+clf = xgb.XGBClassifier(n_estimators=25,
+                        nthread=-1,
+                        max_depth=10,
+                        learning_rate=0.025,
+                        silent=True,
+                        subsample=0.8,
+                        colsample_bytree=0.8)
+                        
+xgb_model = clf.fit(train, y, eval_metric="auc")
+
+preds = clf.predict_proba(test)[:,1]
+
+#change this
+sample = pd.read_csv('../input/sample_submission.csv')
+
+#Change this
+sample.QuoteConversion_Flag = preds
+
+#need to adopt this to the competition format
+sample.to_csv('xgb_benchmark.csv', index=False)
+
