@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pandas as pd
 
 csv_file='C:\Users\oswin.frans\Desktop\Python\Walmart\Walmart_Train.csv'
@@ -5,8 +6,8 @@ sample=pd.read_csv(csv_file, index_col=1,sep=';', low_memory=False)
 z = sample['TripType']
 z=z.groupby(by=z.index, sort=False).first()
 
-#sample=sample.iloc[0:50,]
-#z=z.iloc[0:25]
+sample=sample.iloc[0:50,]
+z=z.iloc[0:25]
 
 seen=[]
 count=1
@@ -27,6 +28,8 @@ for t in range(0, len(sample.index)):
 		count=count+1
 	else:
          v=count
-         ll={"Weekday"+str(v):toappend.Weekday,"Upc"+str(v):toappend.Upc, 'ScanCount'+str(v): toappend.ScanCount, 'DepartmentDescription'+str(v): toappend.DepartmentDescription, 'FinelineNumber'+str(v): toappend.FinelineNumber}
+         ll={"Upc"+str(v):toappend.Upc, 'ScanCount'+str(v): toappend.ScanCount, 'DepartmentDescription'+str(v): toappend.DepartmentDescription, 'FinelineNumber'+str(v): toappend.FinelineNumber}
          z=z.fillna(value=ll)
          count=count+1
+
+z.to_csv(path_or_buf="C:\Users\oswin.frans\Desktop\Python\Walmart\WM_Condensed2.csv")
