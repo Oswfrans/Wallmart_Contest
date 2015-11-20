@@ -1,12 +1,7 @@
 
 #Test_pass='Work4WalmarT'
 
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Nov 19 16:48:51 2015
-
-@author: oswin.frans
-"""
+---------
 import pandas as pd
 import numpy as np
 import xgboost as xgb
@@ -15,11 +10,34 @@ from sklearn.cross_validation import train_test_split
 
 seed = 260681
 
-train = pd.read_csv('../input/train.csv')
-test = pd.read_csv('../input/test.csv')
+
+train = pd.read_csv('C:\Users\oswin.frans\Desktop\Python\Walmart\WM_FE2.csv', index_col=0)
+test = pd.read_csv('C:\Users\oswin.frans\Desktop\Python\Walmart\WM_FE_Test.csv', index_col=0)
+
+def rchars(data):		
+	data=data.rename(columns=lambda x: x.replace('=', ''))
+	data=data.rename(columns=lambda x: x.replace('.', ''))
+	data=data.rename(columns=lambda x: x.replace('-', ''))
+	data=data.rename(columns=lambda x: x.replace('/', ''))
+	data=data.rename(columns=lambda x: x.replace(' ', ''))
+	data=data.rename(columns=lambda x: x.replace(',', ''))
+	data=data.rename(columns=lambda x: x.replace('&', ''))
+	return data
+
+train=rchars(train)
+test=rchars(test)
 
 #triptypes
-y = train.QuoteConversion_Flag.values
+y = train.TripType.values
+
+for i in train.columns:
+	if i not in test.columns:
+		train=train.drop(i, 1)
+
+for i in test.columns:
+	if i not in train.columns:
+		test=test.drop(i, 1)
+
 
 clf = xgb.XGBClassifier(n_estimators=25,
                         nthread=-1,
@@ -31,14 +49,25 @@ clf = xgb.XGBClassifier(n_estimators=25,
                         
 xgb_model = clf.fit(train, y, eval_metric="auc")
 
-preds = clf.predict_proba(test)[:,1]
+preds = clf.predict_proba(test)#[:,1]
+
+preds=pd.DataFrame(preds, index=test.index, columns=['TripType_'+str(i) for i in set(y)])
+
+
+#preds = pd.DataFrame({"VisitNumber": test.index, 'Sales': np.expm1(preds)})
 
 #change this
-sample = pd.read_csv('../input/sample_submission.csv')
+#sample = pd.read_csv('C:\Users\oswin.frans\Desktop\Python\Walmart\sample_submission.csv')
 
 #Change this
-sample.QuoteConversion_Flag = preds
-
 #need to adopt this to the competition format
-sample.to_csv('xgb_benchmark.csv', index=False)
+
+#preds=pd.DataFrame(preds)
+
+preds.to_csv('xgb1.csv')
+
+#sample.QuoteConversion_Flag = preds
+
+#sample.to_csv('xgb_benchmark.csv', index=False)
+
 
