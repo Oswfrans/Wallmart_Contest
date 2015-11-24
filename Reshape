@@ -6,8 +6,9 @@ sample=pd.read_csv(csv_file, index_col=1,sep=';', low_memory=False)
 z = sample['TripType']
 z=z.groupby(by=z.index, sort=False).first()
 
-sample=sample.iloc[0:50,]
-z=z.iloc[0:25]
+#enable this to work on subset
+#sample=sample.iloc[0:50,]
+#z=z.iloc[0:25]
 
 seen=[]
 count=1
