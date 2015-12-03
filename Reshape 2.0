@@ -10,10 +10,6 @@ z=z.groupby(by=z.index, sort=False).first()
 sample=sample.iloc[0:50,]
 z=z.iloc[0:25]
 
-
-
-#doe eerst andere dingen zodat je niet hoeft the iffen en gewoon kan gaan
-#maar loop je dan niet nog steeds tegen een loop aan? not sure lets see
 toappend=pd.DataFrame(sample.iloc[0, 1:6]).transpose()
 z=pd.concat([z, toappend], axis=1, join='outer')
 
@@ -27,54 +23,37 @@ most=counting.index[0]
 
 #join all those with that 'Visitnumber'
 gleber=sample.loc[most]
-sample=sample.drop(gleber)
+sample=sample.drop(most)
 
 for k in range(0, len(gleber)):
-    toaapend=pd.DataFrame(gleber.iloc[k,1:6]).transpose()
-    z=z.join(toappend, how="outer",rsuffix=str(k))
+    toappend=pd.DataFrame(gleber.iloc[k,1:6]).transpose()
+    if k==0:
+        z=z.fillna(toappend)
+    else:
+        z=z.join(toappend, how="outer",rsuffix=str(k))
 
-count_sample=sample['Upc']
-count_sample=pd.DataFrame(count_sample)
-bleg_sample=count_sample.groupby(count_sample.index).apply(lambda x: x.Upc.reset_index(drop=True).T)
+#loop over a list of column names
+col_names=sample.columns
+col_names=col_names[1:]
 
-#need to change index to single index and not multi_index
-mra=bleg_sample.reset_index()
-mra=mra.set_index('VisitNumber')
-del mra['level_1']
-#need to do this for all othe variables
-#possibly more efficient implementation is possible
+for l in col_names:
+    count_sample=sample[l]
+    count_sample=pd.DataFrame(count_sample)
+    bleg_sample=count_sample.groupby(count_sample.index).apply(lambda x: x.reset_index(drop=True).T)
+    #need to change index to single index and not multi_index
+    mra=bleg_sample.reset_index()
+    mra=mra.set_index('VisitNumber')
+    del mra['level_1']
+    #possibly more efficient implementation is possible
+    #create column names here
+    new_column_names=[str(l)+str(i) for i in range(len(mra.columns))]
+    new_column_names[0]=str(l)
+    mra.columns=new_column_names
+    z=z.fillna(mra)
+    
+#remove weekday stuff
+for i in (z.columns):
+    if 'Weekday' in i and i != "Weekday":
+        z=z.drop(i, axis=1)
 
-#create column names here
-new_column_names=['Upc'+str(i) for i in range(len(mra.columns))]
-new_column_names[0]='Upc'
-
-mra.columns=new_column_names
-
-count=1
-seen=[]
-
-for t in range(1, len(sample.index)):
-     if sample.index[t] not in seen:
-         count=1
-         seen.append(sample.index[t])
-     else:
-         count=count+1
-     toappend=pd.DataFrame(sample.iloc[t, 1:6]).transpose()
-     v=count
-     ll={"Upc"+str(count):toappend.Upc, 'ScanCount'+str(count): toappend.ScanCount, 'DepartmentDescription'+str(count): toappend.DepartmentDescription, 'FinelineNumber'+str(count): toappend.FinelineNumber}
-     z=z.fillna(value=ll)
-#     if sample.index[t] not in seen:
-#		z=z.fillna(toappend)
-#		count=1
-#		seen.append(sample.index[t])
-#     if totalcount <= count:
-#		z=z.join(toappend, how="outer", rsuffix=str(count))	
-#		totalcount=totalcount+1
-#		count=count+1
-#    else:
-#          v=count
-#          ll={"Upc"+str(v):toappend.Upc, 'ScanCount'+str(v): toappend.ScanCount, 'DepartmentDescription'+str(v): toappend.DepartmentDescription, 'FinelineNumber'+str(v): toappend.FinelineNumber}
-#          z=z.fillna(value=ll)
-#          count=count+1
-
-z.to_csv(path_or_buf="C:\Users\oswin.frans\Desktop\Python\Walmart\WM_Condensed_Test.csv")
+z.to_csv(path_or_buf="C:\Users\oswin.frans\Desktop\Python\Walmart\WM_Condensed2.csv")
